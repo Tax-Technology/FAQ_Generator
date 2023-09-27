@@ -11,6 +11,10 @@ def is_valid_api_key(api_key):
   except Exception as e:
     return False
 
+# Function to check if the user has entered any text
+def has_entered_text(text):
+  return text and text.strip()
+
 # Function to generate FAQ using OpenAI API
 def generate_faq(text, num_faqs, selected_tone):
   try:
@@ -43,24 +47,26 @@ selected_tone = st.selectbox("Select Tone", ["friendly", "professional", "techni
 # Add a text area for entering text, with a 5000-word limit
 text_input = st.text_area("Enter your text here (maximum 5000 words)")
 
-# Define a submit button
-if st.button("Generate FAQs", key="generate_button"):
-  if api_key and is_valid_api_key(api_key) and text_input:
-    with st.spinner("Generating FAQs..."):
-      qa_pairs = generate_faq(text_input, num_faqs, selected_tone)
+# Check if the user has entered any text
+if has_entered_text(text_input):
 
-    # Create a DataFrame for questions and answers
-    data = {"Question": [], "Answer": []}
-    for i, qa in enumerate(qa_pairs):
-      question = qa['text'].strip()
-      answer = qa['text'].strip()
-      data["Question"].append(f"Q{i + 1}: {question}\n")
-      data["Answer"].append(f"A{i + 1}: {answer}\n")
+  # Add a spinner to indicate that the FAQs are being generated
+  with st.spinner("Generating FAQs..."):
+    qa_pairs = generate_faq(text_input, num_faqs, selected_tone)
+
+  # Create a DataFrame for questions and answers
+  data = {"Question": [], "Answer": []}
+  for i, qa in enumerate(qa_pairs):
+    question = qa['text'].strip()
+    answer = qa['text'].strip()
+    data["Question"].append(f"Q{i + 1}: {question}\n")
+    data["Answer"].append(f"A{i + 1}: {answer}\n")
      
-    df = pd.DataFrame(data)
+  df = pd.DataFrame(data)
      
-    # Display questions and answers in a markdown table
-    st.markdown("### Generated FAQs")
-    st.markdown(df.to_markdown())
-  else:
-    st.error("Please enter a valid OpenAI API key and some text before generating FAQs.")
+  # Display questions and answers in a markdown table
+  st.markdown("### Generated FAQs")
+  st.markdown(df.to_markdown())
+
+else:
+  st.error("Please enter some text before generating the FAQs.")
