@@ -1,8 +1,9 @@
 import streamlit as st
-from transformers import pipeline
+from transformers import pipeline, AutoTokenizer
 
-# Load the generative AI model
-qa_pipeline = pipeline("question-answering", model="distilbert-base-uncased", framework=None)
+# Load the tokenizer for question-answering
+tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
+qa_pipeline = pipeline("question-answering", model="distilbert-base-uncased", tokenizer=tokenizer, framework="pt")
 
 # Define the main function
 def main():
@@ -39,7 +40,10 @@ def parse_text_to_faq(text):
     qa_pairs = []
     for paragraph in paragraphs:
         # Generate questions for the paragraph
-        questions = qa_pipeline({'context': paragraph})
+        questions = qa_pipeline({
+            'context': paragraph,
+            'question': 'What is this about?'  # A default question
+        })
         for question in questions:
             if "question" in question and "answer" in question:
                 answer = qa_pipeline({'context': paragraph, 'question': question["question"]})["answer"]
