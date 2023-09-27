@@ -1,13 +1,26 @@
 import streamlit as st
-import numpy as np
-import pandas as pd
-import tensorflow as tf
 from transformers import pipeline
 
 # Load the generative AI model
-qa_pipeline = pipeline("question-answering", model="bert-large-uncased", framework="tf")
+qa_pipeline = pipeline("question-answering", model="distilbert-base-uncased", framework=None)
 
-# Define a function to parse the uploaded text and formulate questions and answers
+# Define the main function
+def main():
+  # Create a Streamlit app
+  st.title("FAQ Generator")
+
+  # Add a text input widget
+  text_input = st.text_area("Enter your text here")
+
+  # Check if the user has entered text
+  if text_input:
+    # Parse the text and formulate questions and answers
+    qa_pairs = parse_text_to_faq(text_input)
+
+    # Display the FAQ
+    display_faq(qa_pairs)
+
+# Define a function to parse the text and formulate questions and answers
 def parse_text_to_faq(text):
   """Parses the given text and formulates questions and answers using generative AI.
 
@@ -50,22 +63,6 @@ def display_faq(qa_pairs):
     table = st.table(headers=["Question", "Answer"])
     for qa_pair in qa_pairs:
       table.add_row(qa_pair["question"], qa_pair["answer"])
-
-# Define the main function
-def main():
-  # Create a Streamlit app
-  st.title("FAQ Generator")
-
-  # Add a file uploader widget
-  uploaded_file = st.file_uploader("Upload an article or existing text")
-
-  # If the user has uploaded a file, parse the text and formulate questions and answers
-  if uploaded_file is not None:
-    text = uploaded_file.read().decode("utf-8")
-    qa_pairs = parse_text_to_faq(text)
-
-    # Display the FAQ
-    display_faq(qa_pairs)
 
 if __name__ == "__main__":
   main()
