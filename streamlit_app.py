@@ -36,13 +36,13 @@ def parse_text_to_faq(text):
     # Split the text into paragraphs
     paragraphs = text.split("\n\n")
 
-    # Updated default question
-    default_question = 'Can you provide information about this topic?'
+    # Specify the default question related to VAT
+    default_question = "What are the key aspects of Value Added Tax (VAT)?"
 
     # Generate questions and answers for each paragraph
     qa_pairs = []
     for paragraph in paragraphs:
-        # Generate questions for the paragraph using the updated default question
+        # Generate questions for the paragraph using the VAT default question
         questions = qa_pipeline({
             'context': paragraph,
             'question': default_question
