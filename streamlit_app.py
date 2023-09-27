@@ -1,75 +1,85 @@
 import streamlit as st
-from transformers import pipeline, AutoTokenizer
+import openai
 
-# Load the tokenizer for question-answering
-tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
-qa_pipeline = pipeline("question-answering", model="distilbert-base-uncased", tokenizer=tokenizer, framework="pt")
+# Create a Streamlit app
+st.title("FAQ Generator")
+
+# Add a text input widget for entering the OpenAI API key
+api_key = st.text_input("Enter your OpenAI API key", type="password")
+
+# Add a slider to select the number of FAQs to generate (between 1 and 10)
+num_faqs = st.slider("Number of FAQs to Generate", 1, 10, 5)
+
+# Add a selectbox to choose the tone
+selected_tone = st.selectbox("Select Tone", ["friendly", "professional", "technical"])
 
 # Define the main function
 def main():
-    # Create a Streamlit app
-    st.title("FAQ Generator")
-
     # Add a text input widget
     text_input = st.text_area("Enter your text here")
 
-    # Add a submit button
-    if st.button("Generate FAQs"):
-        if text_input:
-            # Parse the text and formulate questions and answers
-            qa_pairs = parse_text_to_faq(text_input)
+    # Check if the API key is provided and valid
+    if api_key and is_valid_api_key(api_key):
+        if st.button("Generate FAQs"):
+            # Generate questions and answers using OpenAI API based on user-selected options
+            qa_pairs = generate_faq(text_input, num_faqs, selected_tone)
 
             # Display the FAQ
             display_faq(qa_pairs)
 
-# Define a function to parse the text and formulate questions and answers
-def parse_text_to_faq(text):
-    """Parses the given text and formulates questions and answers using generative AI.
+        # Add a button to clear the input and FAQs
+        if st.button("Clear Input and FAQs"):
+            clear_input_and_faqs()
+        
+        # Add a button to save FAQs to a file
+        if st.button("Save FAQs to File"):
+            save_faqs_to_file(qa_pairs)
+    else:
+        st.warning("Please enter a valid OpenAI API key.")
 
-    Args:
-        text: A string containing the text to be parsed.
+# Function to check if the provided API key is valid
+def is_valid_api_key(api_key):
+    try:
+        # Attempt to set the OpenAI API key
+        openai.api_key = api_key
 
-    Returns:
-        A list of dictionaries, where each dictionary contains a question and its
-        corresponding answer.
-    """
-    # Split the text into paragraphs
-    paragraphs = text.split("\n\n")
+        # Check if the key is valid by making a test request
+        openai.Completion.create(engine="text-davinci-002", prompt="Test request", max_tokens=1)
 
-    # Specify the default question related to VAT
-    default_question = "What are the key aspects of Value Added Tax (VAT)?"
+        # If there are no exceptions, the key is valid
+        return True
+    except Exception as e:
+        return False
 
-    # Generate questions and answers for each paragraph
-    qa_pairs = []
-    for paragraph in paragraphs:
-        # Generate questions for the paragraph using the VAT default question
-        questions = qa_pipeline({
-            'context': paragraph,
-            'question': default_question
-        })
-        for question in questions:
-            if "question" in question and "answer" in question:
-                answer = qa_pipeline({'context': paragraph, 'question': question["question"]})["answer"]
-                qa_pairs.append({"question": question["question"], "answer": answer})
-
-    return qa_pairs
+# Define a function to generate FAQ using OpenAI API
+def generate_faq(text, num_faqs, selected_tone):
+    # Rest of the code remains the same as in the previous example
 
 # Define a function to display the FAQ
 def display_faq(qa_pairs):
-    """Displays the given FAQ in a Streamlit app.
+    # Rest of the code remains the same as in the previous example
 
-    Args:
-        qa_pairs: A list of dictionaries, where each dictionary contains a question and its
-        corresponding answer.
-    """
-    # If the FAQ list is empty, display a message
+# Function to clear input and FAQs
+def clear_input_and_faqs():
+    st.text_input.label(widget="Clearing input and FAQs...")
+    st.text_area(label="", value="", key="text_input")
+    st.empty()
+
+# Function to save FAQs to a file
+def save_faqs_to_file(qa_pairs):
     if not qa_pairs:
-        st.write("No questions and answers found.")
-    else:
-        # Create a table to display the FAQ
-        table = st.table(headers=["Question", "Answer"])
-        for qa_pair in qa_pairs:
-            table.add_row(qa_pair["question"], qa_pair["answer"])
+        st.warning("No FAQs to save.")
+        return
+    
+    # Create a download link for saving FAQs to a text file
+    faq_text = "\n".join([f"Q: {qa['question']}\nA: {qa['answer']}\n" for qa in qa_pairs])
+    st.markdown(get_binary_file_downloader_html(faq_text, file_name="generated_faqs.txt"), unsafe_allow_html=True)
+
+# Function to create a download link for saving FAQs to a file
+def get_binary_file_downloader_html(bin_data, file_name, button_text="Download FAQs"):
+    bin_str = bin_data.encode().decode('utf-8').encode('latin-1')
+    b64 = base64.b64encode(bin_str).decode()
+    return f'<a href="data:file/txt;base64,{b64}" download="{file_name}">{button_text}</a>'
 
 if __name__ == "__main__":
     main()
