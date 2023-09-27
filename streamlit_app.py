@@ -1,50 +1,38 @@
 import streamlit as st
 import openai
-import base64
 
 # Function to check if the provided API key is valid
 def is_valid_api_key(api_key):
-  try:
-    # Attempt to set the OpenAI API key
-    openai.api_key = api_key
+    try:
+        openai.api_key = api_key
+        openai.Completion.create(engine="text-davinci-002", prompt="Test request", max_tokens=1)
+        return True
+    except Exception as e:
+        return False
 
-    # Check if the key is valid by making a test request
-    openai.Completion.create(engine="text-davinci-002", prompt="Test request", max_tokens=1)
+# Function to generate FAQ using OpenAI API
+def generate_faq(text, num_faqs, selected_tone):
+    try:
+        prompt = f"Generate {num_faqs} FAQs related to the following text: \"{text}\" with a {selected_tone} tone."
+        response = openai.Completion.create(
+            engine="text-davinci-002",
+            prompt=prompt,
+            max_tokens=50,
+            n=num_faqs,
+            stop=None
+        )
+        return [{"question": qa["text"].strip(), "answer": ""} for qa in response.choices]
+    except Exception as e:
+        st.error("An error occurred while generating FAQs.")
+        st.exception(e)
+        return []
 
-    # If there are no exceptions, the key is valid
-    return True
-  except Exception as e:
-    return False
-
-# Define a function to generate FAQ using OpenAI API
-def generate_faq(text, num_faqs, selected_tone, stop=None):
-  # Define the prompt to instruct the model
-  prompt = f"Generate {num_faqs} FAQs related to the following text: \"{text}\" with a {selected_tone} tone."
-
-  try:
-    # Use OpenAI's Completion API to generate FAQs
-    response = openai.Completion.create(
-      engine="text-davinci-002",
-      prompt=prompt,
-      max_tokens=50, # Adjust the max_tokens based on your needs
-      n=num_faqs,  # Generate the specified number of FAQs
-      stop=stop   # Allow the model to generate text freely
-    )
-
-    # Extract and return the generated FAQs, handling empty response.choices
-    qa_pairs = [{"question": qa.get('text', '').strip(), "answer": ""} for qa in response.choices if qa.get('text', '').strip()]
-    return qa_pairs
-  except Exception as e:
-    st.error("An error occurred while generating FAQs.")
-    st.exception(e)
-    return []
-
-# Define a function to display the FAQ
+# Function to display the FAQ
 def display_faq(qa_pairs):
-  for qa in qa_pairs:
-    st.markdown(f"**Q:** {st.markdown(qa['question'])}")
-    st.markdown(f"**A:** {st.markdown(qa['answer'])}")
-    st.markdown("---")
+    for qa in qa_pairs:
+        st.markdown(f"**Q:** {qa['question']}")
+        st.markdown(f"**A:** {qa['answer']}")
+        st.markdown("---")
 
 # Create a Streamlit app
 st.title("FAQ Generator")
@@ -61,14 +49,11 @@ selected_tone = st.selectbox("Select Tone", ["friendly", "professional", "techni
 # Add a text area for entering text, with a 5000-word limit
 text_input = st.text_area("Enter your text here (maximum 5000 words)")
 
-# Check if the user has entered any text
-if text_input:
-  # Add a spinner to indicate that the FAQs are being generated
-  with st.spinner("Generating FAQs..."):
-    qa_pairs = generate_faq(text_input, num_faqs, selected_tone)
-
-  # Display the FAQ
-  display_faq(qa_pairs)
-else:
-  st.error("Please enter some text before generating the FAQs.")
-
+# Define a submit button
+if st.button("Generate FAQs", key="generate_button"):
+    if api_key and is_valid_api_key(api_key) and text_input:
+        with st.spinner("Generating FAQs..."):
+            qa_pairs = generate_faq(text_input, num_faqs, selected_tone)
+        display_faq(qa_pairs)
+    else:
+        st.error("Please enter a valid OpenAI API key and some text before generating FAQs.")
