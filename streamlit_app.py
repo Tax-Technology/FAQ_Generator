@@ -49,11 +49,13 @@ if st.button("Generate FAQs", key="generate_button"):
         with st.spinner("Generating FAQs..."):
             qa_pairs = generate_faq(text_input, num_faqs, selected_tone)
 
-        # Create a DataFrame for questions and answers
-        df = pd.DataFrame({"Question": [qa['text'].strip() for qa in qa_pairs], "Answer": [qa['text'].strip() for qa in qa_pairs]})
-        
-        # Display questions and answers in a table with headers
+        # Display questions and answers in a table format
         st.write("### Generated FAQs")
-        st.table(df)
+        for i, qa in enumerate(qa_pairs):
+            question = qa['text'].strip()
+            answer = qa['text'].strip()
+            st.write(f"**Q{i + 1}:** {question}")
+            st.write(f"**A{i + 1}:** {answer}")
+            st.write("---")
     else:
         st.error("Please enter a valid OpenAI API key and some text before generating FAQs.")
