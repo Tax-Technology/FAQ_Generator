@@ -55,7 +55,26 @@ def is_valid_api_key(api_key):
 
 # Define a function to generate FAQ using OpenAI API
 def generate_faq(text, num_faqs, selected_tone):
-    # Rest of the code remains the same as in the previous example
+    # Define the prompt to instruct the model
+    prompt = f"Generate {num_faqs} FAQs related to the following text: \"{text}\" with a {selected_tone} tone."
+
+    try:
+        # Use OpenAI's Completion API to generate FAQs
+        response = openai.Completion.create(
+            engine="text-davinci-002",
+            prompt=prompt,
+            max_tokens=50,  # Adjust the max_tokens based on your needs
+            n=num_faqs,      # Generate the specified number of FAQs
+            stop=None         # Allow the model to generate text freely
+        )
+
+        # Extract and return the generated FAQs
+        qa_pairs = [{"question": qa.get('choices')[0].text.strip(), "answer": ""} for qa in response.choices]
+        return qa_pairs
+    except Exception as e:
+        st.error("An error occurred while generating FAQs.")
+        st.exception(e)
+        return []
 
 # Define a function to display the FAQ
 def display_faq(qa_pairs):
@@ -66,7 +85,7 @@ def display_faq(qa_pairs):
 
 # Function to clear input and FAQs
 def clear_input_and_faqs():
-    st.text_input.label(widget="Clearing input and FAQs...")
+    st.text_input(label="Clearing input and FAQs...")
     st.text_area(label="", value="", key="text_input")
     st.empty()
 
