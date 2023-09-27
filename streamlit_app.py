@@ -58,7 +58,11 @@ def generate_faq(text, num_faqs, selected_tone):
 
 # Define a function to display the FAQ
 def display_faq(qa_pairs):
-    # Rest of the code remains the same as in the previous example
+    # Corrected indentation below
+    for qa in qa_pairs:
+        st.markdown(f"**Q:** {qa['question']}")
+        st.write(f"**A:** {qa['answer']}")
+        st.write("---")
 
 # Function to clear input and FAQs
 def clear_input_and_faqs():
