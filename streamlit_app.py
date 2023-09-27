@@ -31,8 +31,10 @@ def generate_faq(text, num_faqs, selected_tone, stop=None):
             stop=stop       # Allow the model to generate text freely
         )
 
-        # Extract and return the generated FAQs
-        qa_pairs = [{"question": qa.get('choices')[0].text.strip(), "answer": ""} for qa in response.choices]
+        # Extract and return the generated FAQs, handling None response.choices
+        qa_pairs = []
+        if response.choices:
+            qa_pairs = [{"question": qa.get('choices')[0].text.strip(), "answer": ""} for qa in response.choices]
         return qa_pairs
     except Exception as e:
         st.error("An error occurred while generating FAQs.")
