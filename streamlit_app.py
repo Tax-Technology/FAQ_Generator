@@ -1,11 +1,11 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
-import transformers
+import tensorflow as tf
 from transformers import pipeline
 
 # Load the generative AI model
-qa_pipeline = pipeline("question-answering", model="bert-large-uncased")
+qa_pipeline = pipeline("question-answering", model="bert-large-uncased", framework="tf")
 
 # Define a function to parse the uploaded text and formulate questions and answers
 def parse_text_to_faq(text):
