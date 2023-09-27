@@ -47,4 +47,20 @@ text_input = st.text_area("Enter your text here (maximum 5000 words)")
 if st.button("Generate FAQs", key="generate_button"):
     if api_key and is_valid_api_key(api_key) and text_input:
         with st.spinner("Generating FAQs..."):
-            qa_pairs = generate_faq(text⬤
+            qa_pairs = generate_faq(text_input, num_faqs, selected_tone)
+
+        # Create a DataFrame for questions and answers
+        data = {"Question": [], "Answer": []}
+        for i, qa in enumerate(qa_pairs):
+            question = qa['text'].strip()
+            answer = qa['text'].strip()
+            data["Question"].append(f"Q{i + 1}: {question}\n")
+            data["Answer"].append(f"A{i + 1}: {answer}\n")
+         
+        df = pd.DataFrame(data)
+         
+        # Display questions and answers in a markdown table
+        st.markdown("### Generated FAQs")
+        st.markdown(df.to_markdown())
+    else:
+        st.error("Please enter a valid OpenAI API key and some text before generating FAQs.")
