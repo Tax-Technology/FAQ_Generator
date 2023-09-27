@@ -1,5 +1,6 @@
 import streamlit as st
 import openai
+import pandas as pd
 
 # Function to check if the provided API key is valid
 def is_valid_api_key(api_key):
@@ -27,16 +28,6 @@ def generate_faq(text, num_faqs, selected_tone):
         st.exception(e)
         return []
 
-# Function to display the FAQ
-def display_faq(qa_pairs):
-    for i, qa in enumerate(qa_pairs):
-        question = qa['text'].strip()
-        answer = qa['text'].strip()
-        
-        st.markdown(f"**Q{i + 1}:** {question}")
-        st.markdown(f"**A{i + 1}:** {answer}")
-        st.markdown("---")
-
 # Create a Streamlit app
 st.title("FAQ Generator")
 
@@ -57,6 +48,12 @@ if st.button("Generate FAQs", key="generate_button"):
     if api_key and is_valid_api_key(api_key) and text_input:
         with st.spinner("Generating FAQs..."):
             qa_pairs = generate_faq(text_input, num_faqs, selected_tone)
-        display_faq(qa_pairs)
+
+        # Create a DataFrame for questions and answers
+        df = pd.DataFrame({"Question": [qa['text'].strip() for qa in qa_pairs], "Answer": [qa['text'].strip() for qa in qa_pairs]})
+        
+        # Display questions and answers in a table with headers
+        st.write("### Generated FAQs")
+        st.table(df)
     else:
         st.error("Please enter a valid OpenAI API key and some text before generating FAQs.")
