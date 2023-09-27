@@ -39,10 +39,10 @@ def parse_text_to_faq(text):
     # Generate questions and answers for each paragraph
     qa_pairs = []
     for paragraph in paragraphs:
-        # Generate questions for the paragraph
+        # Generate questions for the paragraph using the updated default question
         questions = qa_pipeline({
             'context': paragraph,
-            'question': 'What is this about?'  # A default question
+            'question': 'What can you tell me about this subject?'  # Updated default question
         })
         for question in questions:
             if "question" in question and "answer" in question:
