@@ -14,8 +14,9 @@ def is_valid_api_key(api_key):
 # Function to generate FAQ using OpenAI API
 def generate_faq(text, num_faqs, selected_tone):
     try:
-        # Create a list to store questions and answers
-        qa_pairs = []
+        # Create lists to store questions and answers
+        questions = []
+        answers = []
 
         # Generate FAQs based on the selected number
         for i in range(num_faqs):
@@ -27,13 +28,16 @@ def generate_faq(text, num_faqs, selected_tone):
                 n=1,  # Generate 1 question-answer pair at a time
                 stop=None
             )
-            qa_pairs.append(response.choices[0]['text'].strip())
+            qa_pair = response.choices[0]['text'].strip().split('\nA')
+            if len(qa_pair) == 2:
+                questions.append(qa_pair[0].strip())
+                answers.append(qa_pair[1].strip())
 
-        return qa_pairs
+        return questions, answers
     except Exception as e:
         st.error("An error occurred while generating FAQs.")
         st.exception(e)
-        return []
+        return [], []
 
 # Create a Streamlit app
 st.title("FAQ Generator")
@@ -54,19 +58,10 @@ text_input = st.text_area("Enter your text here (maximum 5000 words)")
 if st.button("Generate FAQs", key="generate_button"):
     if api_key and is_valid_api_key(api_key) and text_input:
         with st.spinner("Generating FAQs..."):
-            qa_pairs = generate_faq(text_input, num_faqs, selected_tone)
+            questions, answers = generate_faq(text_input, num_faqs, selected_tone)
 
         # Create a DataFrame for questions and answers
-        data = {"Question": [], "Answer": []}
-        for i, qa in enumerate(qa_pairs):
-            # Split the QA pair into question and answer
-            qa_split = qa.split('\nA')
-            if len(qa_split) == 2:
-                question = f"Q{i + 1}: {qa_split[0].strip()}"
-                answer = f"A{i + 1}: {qa_split[1].strip()}"
-                data["Question"].append(question)
-                data["Answer"].append(answer)
-
+        data = {"Question": questions, "Answer": answers}
         df = pd.DataFrame(data)
 
         # Display questions and answers in a markdown table
