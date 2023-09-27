@@ -1,5 +1,6 @@
 import streamlit as st
 import openai
+import base64
 
 # Create a Streamlit app
 st.title("FAQ Generator")
