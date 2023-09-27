@@ -14,15 +14,22 @@ def is_valid_api_key(api_key):
 # Function to generate FAQ using OpenAI API
 def generate_faq(text, num_faqs, selected_tone):
     try:
-        prompt = f"Generate {num_faqs} FAQs related to the following text: \"{text}\" with a {selected_tone} tone."
-        response = openai.Completion.create(
-            engine="text-davinci-002",
-            prompt=prompt,
-            max_tokens=200,  # Adjust max_tokens as needed for longer answers
-            n=num_faqs,
-            stop=None
-        )
-        return response.choices
+        # Create a list to store questions and answers
+        qa_pairs = []
+
+        # Generate FAQs based on the selected number
+        for i in range(num_faqs):
+            prompt = f"Generate FAQ {i + 1}: \"{text}\" with a {selected_tone} tone."
+            response = openai.Completion.create(
+                engine="text-davinci-002",
+                prompt=prompt,
+                max_tokens=200,  # Adjust max_tokens as needed for longer answers
+                n=1,  # Generate 1 question-answer pair at a time
+                stop=None
+            )
+            qa_pairs.append(response.choices[0]['text'].strip())
+
+        return qa_pairs
     except Exception as e:
         st.error("An error occurred while generating FAQs.")
         st.exception(e)
@@ -52,15 +59,13 @@ if st.button("Generate FAQs", key="generate_button"):
         # Create a DataFrame for questions and answers
         data = {"Question": [], "Answer": []}
         for i, qa in enumerate(qa_pairs):
-            question = qa['text'].strip()
-            answer = qa['text'].strip()
-            data["Question"].append(f"Q{i + 1}: {question}\n")
-            data["Answer"].append(f"A{i + 1}: {answer}\n")
-         
+            data["Question"].append(f"Q{i + 1}: {qa}\n")
+            data["Answer"].append(f"A{i + 1}: {qa}\n")
+
         df = pd.DataFrame(data)
-         
+
         # Display questions and answers in a markdown table
         st.markdown("### Generated FAQs")
-        st.markdown(df.to_markdown())
+        st.markdown(df.to_markdown(), unsafe_allow_html=True)
     else:
         st.error("Please enter a valid OpenAI API key and some text before generating FAQs.")
