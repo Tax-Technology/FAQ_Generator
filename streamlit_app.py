@@ -11,7 +11,7 @@ def is_valid_api_key(api_key):
     except Exception as e:
         return False
 
-# Function to generate questions using OpenAI API
+# Function to generate questions and answers using OpenAI API
 def generate_qa_pairs(text, num_qa_pairs, selected_tone):
     try:
         prompt = f"Generate {num_qa_pairs} questions and answers related to the following text: \"{text}\" with a {selected_tone} tone."
@@ -59,8 +59,8 @@ if st.button("Generate Questions and Answers", key="generate_button"):
 
         df = pd.DataFrame(data)
 
-        # Display questions and answers in a markdown table
-        st.markdown("### Questions and Answers")
-        st.write(df)
+        # Display questions and answers in a structured table
+        st.table(df)
+
     else:
         st.error("Please enter a valid OpenAI API key and some text before generating questions and answers.")
