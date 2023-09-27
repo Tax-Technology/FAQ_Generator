@@ -28,13 +28,14 @@ def main():
             # Display the FAQ
             display_faq(qa_pairs)
 
-        # Add a button to clear the input and FAQs
-        if st.button("Clear Input and FAQs"):
-            clear_input_and_faqs()
-        
-        # Add a button to save FAQs to a file
-        if st.button("Save FAQs to File"):
-            save_faqs_to_file(qa_pairs)
+            # Add a button to clear the input and FAQs
+            if st.button("Clear Input and FAQs"):
+                clear_input_and_faqs()
+
+            # Add a button to save FAQs to a file
+            if st.button("Save FAQs to File"):
+                save_faqs_to_file(qa_pairs)
+
     else:
         st.warning("Please enter a valid OpenAI API key.")
 
@@ -58,7 +59,6 @@ def generate_faq(text, num_faqs, selected_tone):
 
 # Define a function to display the FAQ
 def display_faq(qa_pairs):
-    # Corrected indentation below
     for qa in qa_pairs:
         st.markdown(f"**Q:** {qa['question']}")
         st.write(f"**A:** {qa['answer']}")
@@ -75,7 +75,7 @@ def save_faqs_to_file(qa_pairs):
     if not qa_pairs:
         st.warning("No FAQs to save.")
         return
-    
+
     # Create a download link for saving FAQs to a text file
     faq_text = "\n".join([f"Q: {qa['question']}\nA: {qa['answer']}\n" for qa in qa_pairs])
     st.markdown(get_binary_file_downloader_html(faq_text, file_name="generated_faqs.txt"), unsafe_allow_html=True)
