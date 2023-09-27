@@ -18,7 +18,7 @@ def generate_faq(text, num_faqs, selected_tone):
         response = openai.Completion.create(
             engine="text-davinci-002",
             prompt=prompt,
-            max_tokens=50,
+            max_tokens=200,  # Adjust max_tokens as needed for longer answers
             n=num_faqs,
             stop=None
         )
@@ -49,13 +49,18 @@ if st.button("Generate FAQs", key="generate_button"):
         with st.spinner("Generating FAQs..."):
             qa_pairs = generate_faq(text_input, num_faqs, selected_tone)
 
-        # Display questions and answers in a table format
-        st.write("### Generated FAQs")
+        # Create a DataFrame for questions and answers
+        data = {"Question": [], "Answer": []}
         for i, qa in enumerate(qa_pairs):
             question = qa['text'].strip()
             answer = qa['text'].strip()
-            st.write(f"**Q{i + 1}:** {question}")
-            st.write(f"**A{i + 1}:** {answer}")
-            st.write("---")
+            data["Question"].append(f"Q{i + 1}: {question}")
+            data["Answer"].append(f"A{i + 1}: {answer}")
+        
+        df = pd.DataFrame(data)
+        
+        # Display questions and answers in a table format
+        st.write("### Generated FAQs")
+        st.table(df)
     else:
         st.error("Please enter a valid OpenAI API key and some text before generating FAQs.")
