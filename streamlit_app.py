@@ -12,47 +12,48 @@ def main():
   # Add a text input widget
   text_input = st.text_area("Enter your text here")
 
-  # Check if the user has entered text
-  if text_input:
-    # Generate questions and answers based on the provided text
-    qa_pairs = generate_faq_from_text(text_input)
+  # Add a submit button
+  if st.button("Generate FAQs"):
+    if text_input:
+      # Parse the text and formulate questions and answers
+      qa_pairs = parse_text_to_faq(text_input)
 
-    # Display the FAQ
-    display_faq(qa_pairs)
+      # Display the FAQ
+      display_faq(qa_pairs)
 
-# Define a function to generate questions and answers from the provided text
-def generate_faq_from_text(text):
-  """Generates questions and answers based on the provided text.
+# Define a function to parse the text and formulate questions and answers
+def parse_text_to_faq(text):
+  """Parses the given text and formulates questions and answers using generative AI.
 
   Args:
-    text: A string containing the text to generate questions and answers from.
+    text: A string containing the text to be parsed.
 
   Returns:
-    A list of dictionaries, where each dictionary contains a generated question and its
+    A list of dictionaries, where each dictionary contains a question and its
     corresponding answer.
   """
-  
-  # Define the question you want to ask about the text
-  question = "What information can you provide about this text?"
-  
-  # Use the qa_pipeline with the provided text and question
-  questions = qa_pipeline(context=text, question=question)
+  # Split the text into paragraphs
+  paragraphs = text.split("\n\n")
 
-  # Extract the generated answer
-  answer = questions[0]["answer"]
+  # Generate questions and answers for each paragraph
+  qa_pairs = []
+  for paragraph in paragraphs:
+    questions = qa_pipeline(paragraph)
+    for question in questions:
+      if "question" in question and "answer" in question:
+        answer = qa_pipeline(question["answer"], paragraph)["answer"]
+        qa_pairs.append({"question": question["question"], "answer": answer})
 
-  # Return the generated question and answer pair
-  return [{"question": question, "answer": answer}]
+  return qa_pairs
 
 # Define a function to display the FAQ
 def display_faq(qa_pairs):
-  """Displays the generated FAQ in a Streamlit app.
+  """Displays the given FAQ in a Streamlit app.
 
   Args:
     qa_pairs: A list of dictionaries, where each dictionary contains a question and its
     corresponding answer.
   """
-
   # If the FAQ list is empty, display a message
   if not qa_pairs:
     st.write("No questions and answers found.")
