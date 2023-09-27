@@ -14,30 +14,19 @@ def is_valid_api_key(api_key):
 # Function to generate FAQ using OpenAI API
 def generate_faq(text, num_faqs, selected_tone):
     try:
-        # Create lists to store questions and answers
-        questions = []
-        answers = []
-
-        # Generate FAQs based on the selected number
-        for i in range(num_faqs):
-            prompt = f"Generate FAQ {i + 1}: \"{text}\" with a {selected_tone} tone."
-            response = openai.Completion.create(
-                engine="text-davinci-002",
-                prompt=prompt,
-                max_tokens=200,  # Adjust max_tokens as needed for longer answers
-                n=1,  # Generate 1 question-answer pair at a time
-                stop=None
-            )
-            qa_pair = response.choices[0]['text'].strip().split('\nA')
-            if len(qa_pair) == 2:
-                questions.append(qa_pair[0].strip())
-                answers.append(qa_pair[1].strip())
-
-        return questions, answers
+        prompt = f"Generate {num_faqs} FAQs related to the following text: \"{text}\" with a {selected_tone} tone."
+        response = openai.Completion.create(
+            engine="text-davinci-002",
+            prompt=prompt,
+            max_tokens=200,  # Adjust max_tokens as needed for longer answers
+            n=num_faqs,
+            stop=None
+        )
+        return response.choices
     except Exception as e:
         st.error("An error occurred while generating FAQs.")
         st.exception(e)
-        return [], []
+        return []
 
 # Create a Streamlit app
 st.title("FAQ Generator")
@@ -58,14 +47,19 @@ text_input = st.text_area("Enter your text here (maximum 5000 words)")
 if st.button("Generate FAQs", key="generate_button"):
     if api_key and is_valid_api_key(api_key) and text_input:
         with st.spinner("Generating FAQs..."):
-            questions, answers = generate_faq(text_input, num_faqs, selected_tone)
+            qa_pairs = generate_faq(text_input, num_faqs, selected_tone)
 
         # Create a DataFrame for questions and answers
-        data = {"Question": questions, "Answer": answers}
+        data = {"Question": [], "Answer": []}
+        for i, qa in enumerate(qa_pairs):
+            question = qa['text'].strip()
+            data["Question"].append(f"Q{i + 1}: {question}\n")
+            data["Answer"].append(f"A{i + 1}: {question}\n")  # Use the same question as answer for now
+
         df = pd.DataFrame(data)
 
         # Display questions and answers in a markdown table
         st.markdown("### Generated FAQs")
-        st.dataframe(df)
+        st.write(df)  # Use st.write instead of st.markdown for DataFrames
     else:
         st.error("Please enter a valid OpenAI API key and some text before generating FAQs.")
