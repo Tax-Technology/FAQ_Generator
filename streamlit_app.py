@@ -35,7 +35,14 @@ def separate_qa_pairs(qa_pairs):
         if i % 2 == 0:
             data["Question"].append(f"Q{i // 2 + 1}: {qa_pair.text.strip()}")
         else:
-            data["Answer"].append(f"A{i // 2 + 1}: {qa_pair.text.strip()}")
+            # Ensure that there's a corresponding question for each answer
+            if i // 2 < len(data["Question"]):
+                data["Answer"].append(f"A{i // 2 + 1}: {qa_pair.text.strip()}")
+
+    # Ensure that both lists have the same length
+    min_length = min(len(data["Question"]), len(data["Answer"]))
+    data["Question"] = data["Question"][:min_length]
+    data["Answer"] = data["Answer"][:min_length]
 
     return data
 
