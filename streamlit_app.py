@@ -59,13 +59,18 @@ if st.button("Generate FAQs", key="generate_button"):
         # Create a DataFrame for questions and answers
         data = {"Question": [], "Answer": []}
         for i, qa in enumerate(qa_pairs):
-            data["Question"].append(f"Q{i + 1}: {qa}\n")
-            data["Answer"].append(f"A{i + 1}: {qa}\n")
+            # Split the QA pair into question and answer
+            qa_split = qa.split('\nA')
+            if len(qa_split) == 2:
+                question = f"Q{i + 1}: {qa_split[0].strip()}"
+                answer = f"A{i + 1}: {qa_split[1].strip()}"
+                data["Question"].append(question)
+                data["Answer"].append(answer)
 
         df = pd.DataFrame(data)
 
         # Display questions and answers in a markdown table
         st.markdown("### Generated FAQs")
-        st.markdown(df.to_markdown(), unsafe_allow_html=True)
+        st.dataframe(df)
     else:
         st.error("Please enter a valid OpenAI API key and some text before generating FAQs.")
