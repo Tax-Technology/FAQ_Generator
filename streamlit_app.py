@@ -4,29 +4,40 @@ import pandas as pd
 
 # Function to check if the provided API key is valid
 def is_valid_api_key(api_key):
-    try:
-        openai.api_key = api_key
-        openai.Completion.create(engine="text-davinci-002", prompt="Test request", max_tokens=1)
-        return True
-    except Exception as e:
-        return False
+  try:
+    openai.api_key = api_key
+    openai.Completion.create(engine="text-davinci-002", prompt="Test request", max_tokens=1)
+    return True
+  except Exception as e:
+    return False
 
 # Function to generate questions and answers using OpenAI API
 def generate_qa_pairs(text, num_qa_pairs, selected_tone):
-    try:
-        prompt = f"Generate {num_qa_pairs} questions and answers related to the following text: \"{text}\" with a {selected_tone} tone."
-        response = openai.Completion.create(
-            engine="text-davinci-002",
-            prompt=prompt,
-            max_tokens=200,  # Adjust max_tokens as needed for longer answers
-            n=num_qa_pairs * 2,  # Generate twice as many completions to pair questions and answers
-            stop=None
-        )
-        return response.choices
-    except Exception as e:
-        st.error("An error occurred while generating questions and answers.")
-        st.exception(e)
-        return []
+  try:
+    prompt = f"Generate {num_qa_pairs} questions and answers related to the following text: \"{text}\" with a {selected_tone} tone."
+    response = openai.Completion.create(
+      engine="text-davinci-002",
+      prompt=prompt,
+      max_tokens=200, # Adjust max_tokens as needed for longer answers
+      n=num_qa_pairs, # Generate the specified number of completions
+      stop=None
+    )
+    return response.choices
+  except Exception as e:
+    st.error("An error occurred while generating questions and answers.")
+    st.exception(e)
+    return []
+
+# Function to separate questions and answers
+def separate_qa_pairs(qa_pairs):
+  data = {"Question": [], "Answer": []}
+  for i, qa_pair in enumerate(qa_pairs):
+      if i % 2 == 0:
+        data["Question"].append(f"Q{i // 2 + 1}: {qa_pair.text.strip()}")
+      else:
+        data["Answer"].append(f"A{i // 2 + 1}: {qa_pair.text.strip()}")
+
+  return data
 
 # Create a Streamlit app
 st.title("Question and Answer Generator")
@@ -45,22 +56,18 @@ text_input = st.text_area("Enter your text here (maximum 5000 words)")
 
 # Define a submit button
 if st.button("Generate Questions and Answers", key="generate_button"):
-    if api_key and is_valid_api_key(api_key) and text_input:
-        with st.spinner("Generating Questions and Answers..."):
-            qa_pairs = generate_qa_pairs(text_input, num_qa_pairs, selected_tone)
+  if api_key and is_valid_api_key(api_key) and text_input:
+    with st.spinner("Generating Questions and Answers..."):
+      qa_pairs = generate_qa_pairs(text_input, num_qa_pairs, selected_tone)
 
-        # Create a DataFrame for questions and answers
-        data = {"Question": [], "Answer": []}
-        for i in range(num_qa_pairs):
-            question = qa_pairs[i * 2].text.strip()
-            answer = qa_pairs[i * 2 + 1].text.strip()
-            data["Question"].append(f"Q{i + 1}: {question}")
-            data["Answer"].append(f"A{i + 1}: {answer}")
+    # Separate questions and answers
+    data = separate_qa_pairs(qa_pairs)
 
-        df = pd.DataFrame(data)
+    # Create a DataFrame for questions and answers
+    df = pd.DataFrame(data)
 
-        # Display questions and answers in a structured table
-        st.table(df)
+    # Display questions and answers in a structured table
+    st.table(df)
 
-    else:
-        st.error("Please enter a valid OpenAI API key and some text before generating questions and answers.")
+  else:
+    st.error("Please enter a valid OpenAI API key and some text before generating questions and answers.")
