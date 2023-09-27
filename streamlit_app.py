@@ -21,7 +21,7 @@ def generate_faq(text, num_faqs, selected_tone):
             n=num_faqs,
             stop=None
         )
-        return [{"question": qa["text"].strip(), "answer": ""} for qa in response.choices]
+        return response.choices
     except Exception as e:
         st.error("An error occurred while generating FAQs.")
         st.exception(e)
@@ -29,9 +29,12 @@ def generate_faq(text, num_faqs, selected_tone):
 
 # Function to display the FAQ
 def display_faq(qa_pairs):
-    for qa in qa_pairs:
-        st.markdown(f"**Q:** {qa['question']}")
-        st.markdown(f"**A:** {qa['answer']}")
+    for i, qa in enumerate(qa_pairs):
+        question = qa['text'].strip()
+        answer = qa['text'].strip()
+        
+        st.markdown(f"**Q{i + 1}:** {question}")
+        st.markdown(f"**A{i + 1}:** {answer}")
         st.markdown("---")
 
 # Create a Streamlit app
